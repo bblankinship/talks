@@ -1,0 +1,43 @@
+Population,Incidence number,Uncertainty interval,Crude Rate,ASR (World),Cum. risk,Cancer Site,Sex
+Asia,1026171,[1019700.0-1032680.0],45.3,36.8,5.61,Breast,Female
+Europe,531086,[525074.0-537167.0],137.2,74.3,11.86,Breast,Female
+Northern America,281591,[280419.0-282768.0],151.2,89.4,14.78,Breast,Female
+Latin America and the Caribbean,210100,[205031.0-215294.0],63.2,51.9,8.69,Breast,Female
+Africa,186598,[173041.0-201217.0],27.8,40.7,6.53,Breast,Female
+Oceania,25873,[25370.0-26386.0],121.4,87.8,14.2,Breast,Female
+Asia,423238,[412869.0-433868.0],18.7,14,3.97,Lung,Female
+Europe,162480,[158839.0-166204.0],42,18.1,4.15,Lung,Female
+Northern America,124451,[123683.0-125224.0],66.8,30.1,8.08,Lung,Female
+Latin America and the Caribbean,40255,[37953.3-42696.2],12.1,9,2.55,Lung,Female
+Africa,12706,[10249.5-15751.3],1.9,3.2,0.89,Lung,Female
+Oceania,7698,[7431.8-7973.7],36.1,21,5.82,Lung,Female
+Asia,891898,[876277.0-907797.0],37.6,32.7,9.21,Lung,Male
+Europe,315054,[310331.0-319849.0],87.1,43.6,10.64,Lung,Male
+Northern America,129086,[128313.0-129864.0],70.7,35.7,10.19,Lung,Male
+Latin America and the Caribbean,57346,[54509.5-60330.1],17.8,15.6,4.84,Lung,Male
+Africa,33282,[28832.3-38418.4],5,9.8,2.78,Lung,Male
+Oceania,9277,[8980.5-9583.3],43.4,27.4,8.18,Lung,Male
+Europe,76309,[73993.3-78697.2],21.1,11.9,2.54,Melanoma of skin,Male
+Northern America,61675,[61147.6-62207.0],33.8,18.5,4.89,Melanoma of skin,Male
+Asia,12390,[10216.0-15026.6],0.52,0.46,0.12,Melanoma of skin,Male
+Oceania,11126,[10815.2-11445.7],52.1,35.3,8.87,Melanoma of skin,Male
+Latin America and the Caribbean,9233,[8219.6-10371.3],2.9,2.5,0.69,Melanoma of skin,Male
+Africa,3111,[2152.7-4495.8],0.46,0.88,0.27,Melanoma of skin,Male
+Europe,74318,[72081.0-76624.4],19.2,11.4,1.78,Melanoma of skin,Female
+Northern America,43497,[43044.2-43954.6],23.3,14.3,2.49,Melanoma of skin,Female
+Asia,11363,[9414.5-13714.8],0.5,0.39,0.09,Melanoma of skin,Female
+Latin America and the Caribbean,9648,[8623.7-10794.0],2.9,2.2,0.59,Melanoma of skin,Female
+Oceania,8113,[7846.4-8388.7],38.1,25.4,5.36,Melanoma of skin,Female
+Africa,3852,[2655.4-5587.8],0.57,0.93,0.25,Melanoma of skin,Female
+Europe,150627,[147394.0-153931.0],20.1,11.4,2.06,Melanoma of skin,Both
+Northern America,105172,[104479.0-105870.0],28.5,16.1,3.51,Melanoma of skin,Both
+Asia,23753,[20759.7-27177.9],0.51,0.42,0.1,Melanoma of skin,Both
+Oceania,19239,[18827.8-19659.2],45.1,30.1,6.97,Melanoma of skin,Both
+Latin America and the Caribbean,18881,[17416.3-20468.9],2.9,2.3,0.63,Melanoma of skin,Both
+Africa,6963,[5359.8-9045.8],0.52,0.9,0.26,Melanoma of skin,Both
+Asia,1315136,[1296340.0-1334200.0],28.3,22.9,6.32,Lung,Both
+Europe,477534,[471570.0-483574.0],63.8,29.4,6.85,Lung,Both
+Northern America,253537,[252452.0-254627.0],68.7,32.6,8.99,Lung,Both
+Latin America and the Caribbean,97601,[93921.4-101425.0],14.9,12,3.52,Lung,Both
+Africa,45988,[40814.5-51817.3],3.4,6.2,1.7,Lung,Both
+Oceania,16975,[16574.7-17385.0],39.8,24,6.88,Lung,Both
