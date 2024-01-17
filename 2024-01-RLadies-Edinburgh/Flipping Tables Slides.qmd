@@ -1,0 +1,798 @@
+---
+title: "Flipping Tables: Creating Tables with `{gt}` in R"
+subtitle: "*R Ladies Edinburgh*"
+date: "17 January 2024"
+author: "Dr Brittany Blankinship"
+format: 
+  revealjs:
+    theme: simple
+    incremental: true
+    scrollable: true
+    auto-stretch: true
+    footer: "[Slides and code available on GitHub](https://github.com/bblankinship/talks/tree/main/2024-01-RLadies-Edinburgh)"
+    logo: images/gt_hex.png
+emded-resources: true
+---
+# Data visualization {.smaller}
+
+What is your go-to tool when trying to tell a story with data?
+
+-   Typically the answer is data visualization, but meaning exclusively plots and graphs
+-   Data visualization is a fundamental tool in any data scientist's tool kit
+-   The importance **cannot** be understated...
+
+## But what is data visualization? {.smaller}
+
+Not just plots and graphs! **Tables** are the often forgotten about and neglected aspect of data visualization
+
+![](images/succession_tableflip_gif.gif)
+
+## So, when do you use one over the other? {.smaller}
+
+:::: columns
+::: {.column width="60%"}
+![](images/Few2012_tblvsplt.png)
+:::
+
+::: {.column width="40%"}
+-   Both graphs *AND* tables are tools for communication
+
+-   Informative and well-presented graphs and tables *ARE* better communication
+:::
+::::
+
+# What is `{gt}`?
+
+![](images/gt_hex.png){fig-align="center"}
+
+## What is `{gt}`? {.smaller}
+
+A package for making **display tables** ^[the authors distinguish data tables (e.g., tibbles or data frames) and presentation or summary tables]
+
+-   `ggplot2` is the grammar of graphics for plotting, `gt` is the grammar of tables!
+-   Just as we build `ggplots` with layers, we can build `gt` tables by editing each part or layer of the table
+
+## The `{gt}` philosophy
+
+> "we can construct a wide variety of useful tables with a cohesive set of table parts. These include the table header, the stub, the column labels and spanner column labels, the table body, and the table footer."
+
+::: aside
+Iannone R, Cheng J, Schloerke B, Hughes E, Lauer A, Seo J (2024). gt: Easily Create Presentation-Ready Display Tables. R package version 0.10.0.9000, https://github.com/rstudio/gt, https://gt.rstudio.com.
+:::
+
+## Our `{gt}` building blocks {.smaller}
+
+:::: columns
+::: {.column width="40%"}
+-   Table header
+-   Stub Head
+-   Stub
+:::
+
+::: {.column width="40%"}
+-   Column labels
+-   Table body
+-   Table footer
+:::
+::::
+
+![](images/gt_parts.png){fig-align="center"}
+
+## A `{gt}` workflow {.smaller}
+
+Not only is `gt` like `ggplot2` but for tables, but it also follows `tidyverse` conventions! This means you can pipe your wrangled data into the `gt()` function seamlessly.
+
+Once installed `gt` can be loaded as any other R library
+
+```{r gt}
+#| echo: true
+
+library(gt)
+```
+
+![](images/b99hooray_gif.gif){fig-align="center"}
+
+## A `{gt}` workflow {.smaller}
+
+![](images/gt_workflow_diagram.svg){fig-align="center"}
+
+-   The code can look a bit scary, but do *not* fear!
+-   Think about it as writing down in code all the edits you would make to a table in Word
+
+# Let's make a {gt} table!
+
+First, let me introduce our data
+
+## Global Cancer Observatory (GLOBOCAN) {.smaller}
+
+> CANCER TODAY enables a comprehensive assessment of the cancer burden worldwide in 2020, based on the GLOBOCAN estimates of incidence, mortality and prevalence for year 2020 in 185 countries or territories for 36 cancer types by sex and age group
+
+::: aside
+*Website* Ferlay J, Ervik M, Lam F, Colombet M, Mery L, Piñeros M, Znaor A, Soerjomataram I, Bray F (2020). Global Cancer Observatory: Cancer Today. Lyon, France: International Agency for Research on Cancer. Available from: https://gco.iarc.fr/today, accessed 15 January 2024
+
+*Data* Sung H, Ferlay J, Siegel RL, Laversanne M, Soerjomataram I, Jemal A, Bray F. Global cancer statistics 2020: GLOBOCAN estimates of incidence and mortality worldwide for 36 cancers in 185 countries. CA Cancer J Clin. 2021 Feb 4. doi: 10.3322/caac.21660. Epub ahead of print. PMID: 33538338.
+
+*Data* Ferlay J, Colombet M, Soerjomataram I, Parkin DM, Piñeros M, Znaor A, Bray F. Cancer statistics for the year 2020: An overview. Int J Cancer. 2021 Apr 5. doi: 10.1002/ijc.33588. Epub ahead of print. PMID: 33818764.
+:::
+
+## Some key terms {.smaller}
+
+Incidence
+:   new cases in a population within a given time period. Approximation of average risk of developing a cancer
+
+Prevalence
+:   frequency of a disease in a population in a given time period, regardless of when they first were diagnosed
+
+ASR (Age-Standardized Rate)
+:   summary measure (weighted mean) of the incidence or mortality rate that would have been observed if the population had a standard age structure. The weighting is based on the population distribution of a standard population, expressed per 100 000 person-years.
+
+Crude rate
+: \# of new cancers observed during a given time period divided by \# of people in the population at risk; expressed as an annual rate per 100 000 people at risk
+
+## Data dictionary {.scrollable .smaller}
+
+| Column Name          | Description                                                                                                                    | Data type |
+|-----------|-------------------------------------------------|-----------|
+| population           | continent: Asia, Oceania, Africa, Europe, Northern America, Latin America and Caribbean  | factor    |
+| incidence_number     | cancer incidence per 100k in 2020  | numeric   |
+| uncertainty_interval | 95% uncertainty interval, computed using SE of crude incidence ^[see Ferlay et al., 2020 for more details]                                 | double    |
+| crude_rate           | annual rate in 2020 per 100k people at risk | double    |
+| asr_world            | age standardized rate using (W) World Standard Population, per 100k in 2020                                                                   | double    |
+| cum_risk             | probability of individuals developing the disease, new-born children (out of 100) expected to develop the cancer over a lifetime (0-74 years) | double |
+| cancer_site          | site of cancer: breast, lung, melanoma of skin   | factor    |
+| sex                  | female, male, both                               | factor    |
+
+## Preparing our data
+
+![](images/letsdothis_gif.gif){fig-align="center"}
+
+```{r read-in-data}
+#| echo: true 
+#| code-line-numbers: "1|4,7|9"
+
+library(tidyverse)
+# already loaded gt previously 
+
+cancer_incidence <- read_csv("cancer_incidence_allages_2020.csv") %>% 
+  # will need to install the janitor package if you do not have it already 
+  # apply snake_case to column names 
+  janitor::clean_names() %>% 
+  # characters to factor 
+  mutate(across(where(is.character), as.factor))
+```
+
+
+# Let's flip some tables
+... with a worked-through `{gt}` workflow 
+
+![](images/succession_tableflip_gif.gif)
+
+--- 
+```{r clean-data}
+#| echo: true
+#| code-line-numbers: "|1,3|5|7"
+
+cancer_tbl <- cancer_incidence %>% 
+  # filter for just breast cancer, which in this df only include females 
+  filter(cancer_site == "Breast") %>% 
+  #select columns of interest
+  select(population, incidence_number, asr_world)
+
+cancer_tbl
+```
+
+
+## Our first `{gt}` table 
+
+```{r table1}
+#| echo: true
+
+cancer_tbl %>% 
+  gt()
+```
+
+- Fantastic! But we can do *so* much more...
+
+## The Column Labels {.smaller}
+
+:::: columns
+::: {.column width="50%"}
+![](images/gt_parts.png){fig-align="left"}
+:::
+
+::: {.column width="50%"}
+column labels
+: minimally contain the table's columns and column labels
+
+    -   default to column names in input table data
+    -   modified with `cols_label()`
+    -   within code refer to columns by *original column names* even after being relabelled
+    -   use `md()` or `html()` helper functions for customized rendering
+:::
+::::
+
+## Building our table
+
+```{r table2}
+#| echo: true
+#| code-line-numbers: "3-5"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+            incidence_number = "Incidence Number",
+            asr_world = "ASR") 
+```
+
+## The Column Labels Cont. {.smaller}
+
+:::: columns
+::: {.column width="50%"}
+![](images/gt_parts.png){fig-align="left"}
+:::
+
+::: {.column width="50%"}
+
+spanner columns
+: groupings that encompass one or more columns
+
+    -   insert spanner columns with `tab_spanner()`
+    -   unlimited number of levels for spanners ^[theoretically, don't go wild with power]
+:::
+::::
+
+## Building our table
+
+```{r table3}
+#| echo: true
+#| code-line-numbers: "6-7"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world))
+```
+
+# The Table Body 
+
+![](images/gt_parts.png){fig-align="right"}
+
+## Realign table body
+
+```{r table4}
+#| echo: true
+#| code-line-numbers: "8-11"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  # left align the first column
+  ## note referring to column by name in df not the new name in the table 
+  cols_align(align = "left",
+             columns = population)
+```
+
+## Move columns
+
+```{r table5}
+#| echo: true
+#| code-line-numbers: "10-11"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  # move ASR in front of Incidence number 
+  cols_move(columns = asr_world, after = population)
+```
+
+## Format numbers {.smaller}
+
+```{r table6}
+#| echo: true
+#| code-line-numbers: "11-12|13-14"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move(columns = asr_world, after = population) %>% 
+  # you can apply to multiple columns with a vector c()
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  # add comma delimiter 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0)
+```
+
+You can also 
+
+- format numbers into percentages (including the % symbol) with `fmt_percent()` 
+- reformat default `NA` to be a dash (or anything else) instead with `sub_missing()` 
+
+## Summary rows {.smaller}
+
+If your table is grouped, use `summary_rows()`
+
+```{r table7}
+#| echo: true
+#| code-line-numbers: "13-18"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move(columns = asr_world, after = population) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>%
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>% 
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+# functions to be used for the summary, can be names in quotes, bare functions, or in formula form  
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     # formatting of output, in formula form 
+                     fmt = ~fmt_number(., decimals = 2))
+```
+
+## Color table cells 
+
+```{r table8}
+#| echo: true
+#| code-line-numbers: "16-20"
+
+cancer_tbl %>% 
+  gt() %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move(columns = asr_world, after = population) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>%
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             # vector of color names or name of RColorBrewer, vidris, or paleteer palettes  
+             palette = c("darkgreen", "red3"),
+             # possible values to be mapped 
+             domain = c(30, 90))
+```
+
+# The Stub {.smaller}
+
+:::: columns
+::: {.column width="50%"}
+stub
+: the area to the left in a table that contains row labels, and may contain row group labels, and summary labels
+
+    -   optional
+    -   specified within `rowname_col` argument within `gt()`
+
+stub head
+: location for the label describing the stub
+
+    -   created with `tab_subhead()`
+:::
+
+::: {.column width="50%"}
+![](images/gt_parts.png){fig-align="right"}
+:::
+::::
+
+## Back to our table 
+
+```{r table9}
+#| echo: true
+#| code-line-numbers: "2"
+
+cancer_tbl %>% 
+  gt(rownames_to_stub = TRUE) %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move(columns = asr_world, after = population) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90))
+```
+
+## Back to our table 
+
+```{r table10}
+#| echo: true
+#| code-line-numbers: "2|10-11"
+
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  # population no longer in table body, update function 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>%
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90))
+
+```
+
+# Finishing touches 
+
+![](images/finishingtouches_gif.gif){fig-align="center"}
+
+## Title 
+
+```{r table11}
+#| echo: true
+#| code-line-numbers: "20"
+
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  # population no longer in table table, update function 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90)) %>% 
+  tab_header(title = "Global Breast Cancer Incidence in 2020")
+```
+
+## Data source note
+
+```{r table12}
+#| echo: true
+#| code-line-numbers: "20-21"
+
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90)) %>% 
+  tab_header(title = "Global Breast Cancer Incidence in 2020") %>% 
+  # using md() helper function 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY"))
+```
+
+## Footnotes
+
+```{r table13}
+#| echo: true
+#| code-line-numbers: "21-22|23-24"
+
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>%
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90)) %>% 
+  tab_header(title = "Global Breast Cancer Incidence in 2020") %>% 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY")) %>% 
+  tab_footnote(footnote = "Data only include breast cancer for female population",
+               locations = cells_column_spanners()) %>% 
+  tab_footnote(footnote = "Age Standardised Rate (ASR)", 
+               locations = cells_column_labels(columns = asr_world))
+```
+
+## Table caption {.smaller}
+
+Adding a caption makes tables cross-referencing across your document! 
+
+```{r table14}
+#| echo: true
+#| code-line-numbers: "25"
+
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90)) %>% 
+  tab_header(title = "Global Breast Cancer Incidence in 2020") %>% 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY")) %>% 
+  tab_footnote(footnote = "Data only include breast cancer for female population",
+               locations = cells_column_spanners()) %>% 
+  tab_footnote(footnote = "Age Standardised Rate (ASR)", 
+               locations = cells_column_labels(columns = asr_world)) %>% 
+  tab_caption(caption = md("**`{gt}`** table example"))
+```
+## Look at those flipped tables!
+
+:::: columns
+
+::: {.column width="50%"}
+Before 
+
+```{r before}
+cancer_tbl
+```
+:::
+
+::: {.column width="50%"}
+After 
+
+```{r after}
+cancer_tbl %>% 
+  gt(rowname_col = "population") %>% 
+  cols_label(population = "Continent",
+             incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  cols_move_to_start(asr_world) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = "Average", fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(30, 90)) %>% 
+  tab_header(title = "Global Breast Cancer Incidence in 2020") %>% 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY")) %>% 
+  tab_footnote(footnote = "Data only include breast cancer for female population",
+               locations = cells_column_spanners()) %>% 
+  tab_footnote(footnote = "Age Standardised Rate (ASR)", 
+               locations = cells_column_labels(columns = asr_world)) %>% 
+  tab_caption(caption = md("**`{gt}`** table example"))
+```
+
+:::
+::::
+
+## Practice! ^[if there is time, likely not knowing me] 
+
+Try to recreate the following table with the data provided. The code will be shown on the slide after ^[hint, you can reuse much of the code from our final table. A function discussed but not shown is used. An argument I did not cover is used to group the data...look up the `gt()` function documentation ] 
+
+## Practice table
+
+```{r practice-show}
+cancer_incidence %>% 
+  # removes breast cancer as sex is only female in the data 
+  filter(sex == "Both") %>% 
+  select(population, incidence_number, asr_world, cancer_site) %>% 
+  gt(groupname_col = "cancer_site",
+     rowname_col = "population") %>% 
+  cols_label(incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  summary_rows(columns = c(asr_world, incidence_number), 
+               fns = list(fns = list(label = md("*Average*"), fn = "mean")),
+               fmt = ~fmt_number(., decimals = 2)) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = md("*Overall Average*"), fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(0, 35)) %>% 
+  tab_header(title = "Global Skin Melanoma and Lung Cancer Incidence in 2020",
+             subtitle = "Data for both genders") %>% 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY")) %>% 
+  tab_footnote(footnote = "Age Standardised Rate (ASR)", 
+               locations = cells_column_labels(columns = asr_world))
+```
+
+
+## Practice code {.smaller} 
+
+```{r practice}
+#| echo: true 
+#| code-line-numbers: "1-5|6-8|9-13|14-16|17-25|26-29|30-35"
+
+cancer_incidence %>%
+  # 1st wrangle data for table 
+  # removes breast cancer as sex is only female in the data 
+  filter(sex == "Both") %>% 
+  select(population, incidence_number, asr_world, cancer_site) %>%
+  # then create gt table  
+  gt(groupname_col = "cancer_site",
+     rowname_col = "population") %>% 
+  # format columns 
+  cols_label(incidence_number = "Incidence Number",
+             asr_world = "ASR") %>% 
+  cols_align(align = "left",
+             columns = population) %>% 
+  # format stub 
+  tab_spanner(label = "Rate per 100k population",
+              columns = c(incidence_number, asr_world)) %>% 
+  # format table body 
+  fmt_number(columns = asr_world, decimals = 2) %>% 
+  fmt_number(columns = incidence_number, sep_mark = ",", decimals = 0) %>%
+  summary_rows(columns = c(asr_world, incidence_number), 
+               fns = list(fns = list(label = md("*Average*"), fn = "mean")),
+               fmt = ~fmt_number(., decimals = 2)) %>%
+  grand_summary_rows(columns = c(asr_world, incidence_number), 
+                     fns = list(fns = list(label = md("*Overall Average*"), fn = "mean")),
+                     fmt = ~fmt_number(., decimals = 2)) %>% 
+  # add color to column of interest 
+  data_color(columns = asr_world,
+             palette = c("darkgreen", "red3"),
+             domain = c(0, 35)) %>% 
+  # add titles and notes 
+  tab_header(title = "Global Skin Melanoma and Lung Cancer Incidence in 2020",
+             subtitle = "Data for both genders") %>% 
+  tab_source_note(source_note = md("**Source**: GLOBOCAN 2020, CANCER TODAY")) %>% 
+  tab_footnote(footnote = "Age Standardised Rate (ASR)", 
+               locations = cells_column_labels(columns = asr_world))
+```
+
+
+# Some life changing extras
+
+## `{gtsummary}`{.smaller}
+
+![](images/gtsummary_hex.png){fig-align="center"}
+
+## What is `{gtsummary}`? {.smaller}
+
+A companion package to `gt` that creates "publication-ready analytical and summary tables" ^[sounds lofty, but it really does!]
+
+:::: columns
+::: {.column width="50%"}
+-   Your new go-to package for the pervasive *"Table 1"* in your next paper
+-   Summarise data frames or tibbles
+-   Summarise regression models
+:::
+
+::: {.column width="50%"}
+-   Customise as you wish (more options released with each new update)
+-   Report statistics inline from `gtsummary` tables
+:::
+:::
+
+::: aside
+Sjoberg DD, Whiting K, Curry M, Lavery JA, Larmarange J. Reproducible summary tables with the gtsummary package. The R Journal 2021;13:570--80. https://doi.org/10.32614/RJ-2021-053.
+::::
+
+## `{gtsummary}` in action
+
+`tbl_summary()` function
+
+![](images/tbl_summary_demo1.gif)
+
+## `{gtExtras}`{.smaller}
+
+Fun and dazzling additional helper functions for your `gt` creations
+
+![](images/gtExtra_hex.png){fig-align="center"}
+
+::: aside
+Mock T (2023). gtExtras: Extending 'gt' for Beautiful HTML Tables. R package version 0.5.0.9004, https://jthomasmock.github.io/gtExtras/, https://github.com/jthomasmock/gtExtras.
+:::
+
+## Never remain uninspired {.smaller}
+
+1.  For inspiration in creating your next table, check out Yan Holtz's [Table gallery](https://r-graph-gallery.com/table.html)
+
+    -   For creating graphs, [R Graph Gallery](https://r-graph-gallery.com/index.html) more generally is phenominal, `ggplot2` and base R exemplars
+
+2.  [Posit Community Table Gallery](https://community.rstudio.com/c/table-gallery/64?tags=gt) includes static, interactive HTML, and interactive shiny tables build with `gt`, `DT`, and `reactable`
+
+## Continuing your `{gt}` journey {.smaller}
+
+![](images/more_gt.png){fig-align="center"}
+
+## Continuing your `{gt}` journey {.smaller}
+
+Further resources I recommend include:
+
+:::: columns
+::: {.column width="50%"}
+1. Thomas Mock's (`gtExtras` author) blog and tutorials
+
+-   [`gt` cookbook](https://themockup.blog/static/resources/gt-cookbook.html)
+-   [Advanced `gt` cookbook](https://themockup.blog/static/resources/gt-cookbook-advanced.html#introduction)
+-   [Beautiful tables with `gtExtras`](https://themockup.blog/posts/2022-06-13-gtextras-cran/)
+:::
+
+::: {.column width="50%"}
+2. `gt` package [webpages and vignettes](https://gt.rstudio.com/articles/gt.html)
+
+3. Rich Iannone (`gt` author) [video introducing the package](https://www.youtube.com/watch?app=desktop&v=z0UGmMOxl-c)
+
+4. Albert Rapp's `gt` [tutorial book](https://gt.albert-rapp.de/)
+:::
+::::
+
+# Thank you!
+
+![](images/ty_gif.gif){fig-align="center"}
+
+Email: b.blankinship\@ed.ac.uk
+
+[\@BrittNeuroPsych](twitter.com/brittneuropsych)
+
+[pairprogramming.ed.ac.uk](pairprogramming.ed.ac.uk)
